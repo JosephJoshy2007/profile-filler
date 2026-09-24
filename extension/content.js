@@ -41,13 +41,18 @@
   }
 
   function getTitle(root) {
-    // Try multiple selectors
+    // 1. Try .question-title (common in test clones)
+    const qt = root.querySelector('.question-title');
+    if (qt) {
+      const text = (qt.innerText || qt.textContent || '').trim();
+      if (text) return text;
+    }
+    // 2. Try Google Forms selectors
     const sels = [
       '[data-params]',
       '.freebirdFormviewerComponentsQuestionBaseTitle',
       '.freebirdCustomFontEl',
-      '[jsname="wzEDJd"]',
-      'div[aria-label]'
+      '[jsname="wzEDJd"]'
     ];
     for (const sel of sels) {
       const el = root.querySelector(sel);
@@ -56,12 +61,22 @@
         if (text) return text;
       }
     }
-    // Fallback: first non-empty text node
+    // 3. Use aria-label from GROUP elements (radiogroup/listbox) only
+    const groupEls = root.querySelectorAll('div[role="radiogroup"][aria-label], div[role="listbox"][aria-label], div[aria-label]');
+    for (const el of groupEls) {
+      // Skip individual option labels
+      const role = el.getAttribute('role');
+      if (role === 'radio' || role === 'checkbox' || role === 'option') continue;
+      const attr = el.getAttribute('aria-label');
+      if (attr && attr.trim().length > 0 && !attr.match(/[⭘☐●☑]/)) return attr.trim();
+    }
+    // 4. Fallback: first non-empty text node that's not an option label
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let n;
     while (n = walker.nextNode()) {
       const t = n.textContent.trim();
-      if (t.length > 0 && !t.match(/^\d+\s*of\s*\d+$/)) return t;
+      // Skip option labels (contain ⭘, ☐, ●, ☑) and page numbers
+      if (t.length > 0 && !t.match(/^\d+\s*of\s*\d+$/) && !t.match(/[⭘☐●☑]/)) return t;
     }
     return '';
   }
