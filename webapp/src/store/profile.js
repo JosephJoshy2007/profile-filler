@@ -35,6 +35,34 @@ export function exportProfile(profile) {
   URL.revokeObjectURL(url);
 }
 
+export async function copyProfileToClipboard(profile) {
+  const json = JSON.stringify(profile, null, 2);
+  try {
+    await navigator.clipboard.writeText(json);
+    return { success: true, message: 'Profile JSON copied to clipboard — paste it into the extension popup' };
+  } catch (e) {
+    // Fallback for non-HTTPS or older browsers
+    const ta = document.createElement('textarea');
+    ta.value = json;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return { success: true, message: 'Profile JSON copied to clipboard' };
+    } catch (e2) {
+      document.body.removeChild(ta);
+      return { success: false, message: 'Copy failed — use the Export JSON button instead' };
+    }
+  }
+}
+
+export function getProfileJSON(profile) {
+  return JSON.stringify(profile, null, 2);
+}
+
 export function importProfile(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -44,4 +72,9 @@ export function importProfile(file) {
     };
     reader.readAsText(file);
   });
+}
+
+export function importProfileFromText(text) {
+  try { return JSON.parse(text); }
+  catch (e) { return null; }
 }
