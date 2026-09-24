@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProfileFiller Profile",
+  "type": "object",
+  "properties": {
+    "version": { "type": "number", "default": 1 },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "fields": {
+      "type": "object",
+      "description": "key -> { value, type, options? }"
+    },
+    "matchers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field_key": { "type": "string" },
+          "label_patterns": { "type": "array", "items": { "type": "string" } },
+          "enabled": { "type": "boolean", "default": true },
+          "match_type": { "type": "string", "enum": ["exact", "substring", "fuzzy", "regex"] },
+          "fuzzy_threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.8 }
+        },
+        "required": ["field_key", "label_patterns"]
+      }
+    }
+  },
+  "required": ["fields", "matchers"]
+}

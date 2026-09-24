@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build output
+webapp/dist/
+
+# Extension package
+profile-filler-extension.zip
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
